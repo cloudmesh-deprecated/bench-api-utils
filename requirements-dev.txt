@@ -1,2 +1,2 @@
 docopt
-https://github.com/badi/pxul/archive/v2.0.0.tar.gz
+-e git+https://github.com/badi/pxul@v2.0.0#egg=pxul
