@@ -4,7 +4,7 @@ from .timer import Timer
 
 import pxul.os
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 import copy
 
 
