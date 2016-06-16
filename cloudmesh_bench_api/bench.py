@@ -73,7 +73,7 @@ class AbstractBenchmarkRunner:
         """
 
 
-        with self._timer.enter('fetch'):
+        with self._timer.measure('fetch'):
             path = self._fetch(prefix)
 
         self._path = path

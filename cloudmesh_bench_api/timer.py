@@ -1,0 +1,130 @@
+from collections import namedtuple, defaultdict
+import time
+
+
+TimeSpan = namedtuple('TimeSpan', ['start', 'stop'])
+
+
+
+class Timer(object):
+    """
+
+    A context manager-based timer where times can be associated with a
+    tag.
+
+    .. python:
+
+       timer = Timer()
+
+       for i in xrange(10):
+         with timer.measure('foo'):
+           foo()
+         with timer.measure('bar'):
+           bar()
+
+       print timer.average('foo')
+       print timer.average('bar')
+
+    """
+
+
+    def __init__(self):
+        self._start = None
+        self._stop  = None
+        self._times = defaultdict(list)
+        self._running = False
+        self._name = None
+
+
+    @property
+    def running(self):
+        """Boolean indicated if the timer is current measuring something
+        """
+        return self._running
+
+    @property
+    def names(self):
+        """List the attributes of the measured times
+
+        :returns: iterable of names
+        :rtype: generator
+        """
+
+        return self._times.iterkeys()
+
+
+    def times(self, name):
+        """Returns the list of measured times for a given name.
+
+        :param name: the attribute for the times measured
+        :type name: :class:`str`
+        :returns: iterable of :class:`TimeSpan`
+        :rtype: generator
+        """
+
+        return iter(self._times[name])
+
+
+    def average(self, name):
+        """Return the average of the named time measurements
+
+        .. python:
+
+           print timer.average('foo')
+
+        :param name: the name of the measurements
+        :returns: average time span in seconds
+        :rtype: :class:`float`
+        """
+
+        n = 0.0
+        s = 0.0
+
+        for start, stop in self.times(name):
+            n += 1.0
+            s += stop - start
+
+        return s / n
+
+
+    def measure(self, name):
+        """Measure the time it takes to run arbitrary code.
+
+        This creates a timing context under which the code is run.
+        It is intended to be used as a context manager:
+
+        .. python:
+
+           with timer.measure('foo'):
+             runFoo()
+  
+           print list(timer.times('foo'))
+
+        :param name: The attribute to associate this measurement with
+        :type name: :class:`str`
+        """
+        self._name = name
+        return self
+
+
+    def __enter__(self):
+        if self.running:
+            raise ValueError('Cannot enter an already running timer')
+
+        self._running = True
+        self._start = time.time()
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._stop = time.time()
+
+        name = self._name
+        span = TimeSpan(start = self._start,
+                        stop  = self._stop)
+        self._times[name].append(span)
+
+        # cleanup
+        self._running = False
+        self._name = None
+        self._start = None
+        self._stop = None
