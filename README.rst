@@ -31,6 +31,7 @@ The API is provided in `bench.py <./cloudmesh_bench_api/bench.py>`_
 
 #. ``git clone git@github.com/cloudmesh/bench-api-utils``
 #. ``pip install -r requirements.txt``
+#. ``pip install .``
 
 
 ==========
