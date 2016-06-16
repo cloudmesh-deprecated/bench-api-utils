@@ -21,7 +21,7 @@ The API is provided in `bench.py <./cloudmesh_bench_api/bench.py>`_
  Installation
 ==============
 
-.. topic:: NOTE
+.. tip::
 
    We recommend using a virtual environment::
 
