@@ -8,6 +8,22 @@ from abc import ABCMeta, abstractmethod
 import copy
 
 
+################################################## exceptions
+
+class BenchmarkError(Exception):
+    """Error occurred during benchmarking
+    """
+    pass
+
+class VerificationError(Exception):
+    """Verification of the benchmark failed
+    """
+    pass
+
+
+################################################## benchmark
+
+
 class AbstractBenchmarkRunner:
     """
     An instance of AbstractBenchmarkRunner manages the lifecycle of a
@@ -172,6 +188,36 @@ class AbstractBenchmarkRunner:
 
         with pxul.os.env(**self._env), self._timer.measure('run'):
             self._run()
+
+
+    ################################################## verify
+
+
+    @abstractmethod
+    def _verify(self):
+        """Verify that the benchmark was run successfully
+
+        :returns: True if the benchmark was successfull
+        :rtype: :class:`bool`
+
+        """
+
+        raise NotImplementedError
+
+
+    def verify(self):
+        """Verify that the benchmark was run successfull
+
+        Raises a VerificationError on failure
+        """
+
+        self._log.append('verify')
+
+        with pxul.os.env(**self._env), self._timer.measure('verify'):
+            passed = self._verify()
+
+        if not passed:
+            raise VerificationError()
 
 
     ################################################## cleanup
