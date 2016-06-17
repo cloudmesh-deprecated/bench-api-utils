@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from .timer import Timer
+from .report import Report
 
 import pxul.os
 
@@ -74,7 +75,7 @@ class AbstractBenchmarkRunner:
         self._prefix = prefix or os.getcwd()
         self.__log = list()
         self.__timer = Timer()
-
+        self._report = Report(self.__timer)
 
     ################################################## fetch
 
@@ -322,3 +323,14 @@ class AbstractBenchmarkRunner:
         """
         assert hasattr(self, '_env')
         return copy.deepcopy(self._env)
+
+
+    @property
+    def report(self):
+        """Generate a report
+
+        :returns: a report object
+        :rtype: :class:`Report`
+        """
+
+        return self._report

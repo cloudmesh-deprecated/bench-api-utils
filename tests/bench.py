@@ -1,6 +1,7 @@
 
 
 from cloudmesh_bench_api.bench import AbstractBenchmarkRunner
+from cloudmesh_bench_api.report import Report
 
 from hypothesis import given, settings, assume
 from hypothesis import strategies as st
@@ -62,26 +63,22 @@ def filenames(draw):
     return name
 
 
-@given(filenames(), st.integers(max_value=2))
+@given(filenames(), st.integers(min_value=1, max_value=5))
 def test_runners(prefix, times):
-
-    assume(times > 0)
 
     prefix = os.path.join('testprefix', prefix)
     print 'X', times, 'in', prefix
     b = ExampleBenchmarkRunner(prefix=prefix)
     b.bench(times=times)
-    for n in b._timer.names:
-        print n, times, b._timer.average(n)
 
-    assert b._timer._order == ['fetch', 'prepare', 'launch',
-                        'deploy', 'run', 'cleanup'],  b._timer._order
+    print b.report.pretty()
 
-    assert set(b._timer._times.keys()) == set(b._timer._order), \
-        (b._timer.keys(), b._timer._order)
+    assert list(b._timer.names) == ['fetch', 'prepare', 'launch',
+                                    'deploy', 'run', 'cleanup'],  \
+                                    list(b._timer.names)
 
-
-    print
+    assert set(b._timer._times.keys()) == set(b._timer.names), \
+        (b._timer.keys(), list(b._timer.names))
 
 
 if __name__ == '__main__':
