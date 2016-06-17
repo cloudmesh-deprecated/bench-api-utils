@@ -6,6 +6,7 @@ import pxul.os
 
 from abc import ABCMeta, abstractmethod
 import copy
+import os
 
 
 ################################################## exceptions
@@ -100,6 +101,10 @@ class AbstractBenchmarkRunner:
         """
 
         self._log.append('fetch')
+
+        if prefix is None:
+            prefix = os.getcwd()
+
         with self._timer.measure('fetch'):
             path = self._fetch(prefix)
 
