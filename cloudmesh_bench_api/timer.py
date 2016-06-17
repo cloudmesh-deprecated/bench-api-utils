@@ -2,7 +2,17 @@ from collections import namedtuple, defaultdict
 import time
 
 
-TimeSpan = namedtuple('TimeSpan', ['start', 'stop'])
+class TimeSpan(object):
+
+    __slots__ = ['start', 'stop']
+
+    def __init__(self, start, stop):
+        self.start = start
+        self.stop = stop
+
+    @property
+    def seconds(self):
+        return self.stop - self.start
 
 
 
@@ -84,9 +94,9 @@ class Timer(object):
         n = 0.0
         s = 0.0
 
-        for start, stop in self.times(name):
+        for span in self.times(name):
             n += 1.0
-            s += stop - start
+            s += span.seconds
 
         return s / n
 
