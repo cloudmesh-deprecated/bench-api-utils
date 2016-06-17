@@ -32,11 +32,11 @@ def write_version_module(version, path):
     ###
     ##################################################
 
-    version = "{version}"
-    time_version = "{time}"
-    git_version = "{git}"
-    full_version = "{version}-{time_version}-{git_version}".format(locals())
-    """.format(
+    version = "%(version)s"
+    time_version = "%(time)s"
+    git_version = "%(git)s"
+    full_version = "{version}-{time_version}-{git_version}".format(**locals())
+    """ % dict(
         version = version,
         time = git_commit_timestamp(),
         git = git_version()))
