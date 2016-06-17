@@ -31,6 +31,7 @@ class Timer(object):
     def __init__(self):
         self._start = None
         self._stop  = None
+        self._order = list()
         self._times = defaultdict(list)
         self._running = False
         self._name = None
@@ -50,7 +51,10 @@ class Timer(object):
         :rtype: generator
         """
 
-        return self._times.iterkeys()
+        assert set(self._times.keys()) == set(self._order), \
+            (self._times.key(), self._order)
+
+        return iter(self._order)
 
 
     def times(self, name):
@@ -110,6 +114,9 @@ class Timer(object):
     def __enter__(self):
         if self.running:
             raise ValueError('Cannot enter an already running timer')
+
+        if self._name not in self._order:
+            self._order.append(self._name)
 
         self._running = True
         self._start = time.time()

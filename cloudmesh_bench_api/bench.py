@@ -7,6 +7,7 @@ import pxul.os
 from abc import ABCMeta, abstractmethod
 import copy
 import os
+import shutil
 
 
 ################################################## exceptions
@@ -67,6 +68,12 @@ class AbstractBenchmarkRunner:
 
 
     __metaclass__ = ABCMeta
+
+
+    def __init__(self, prefix=None):
+        self._prefix = prefix or os.getcwd()
+        self.__log = list()
+        self.__timer = Timer()
 
 
     ################################################## fetch
@@ -244,6 +251,8 @@ class AbstractBenchmarkRunner:
         with pxul.os.env(**self._env), self._timer.measure('cleanup'):
             self._clean()
 
+        shutil.rmtree(self.path)
+        self._path = None
 
     ################################################## bench
 
@@ -262,7 +271,7 @@ class AbstractBenchmarkRunner:
         self._log.append('bench(times={})'.format(times))
 
         for i in xrange(times):
-            self.fetch()
+            self.fetch(prefix=self._prefix)
             self.prepare()
             self.launch()
             self.deploy()
@@ -282,8 +291,6 @@ class AbstractBenchmarkRunner:
         :rtype: :class:`Timer`
         """
 
-        if not hasattr(self, '__timer'):
-            self.__timer = Timer()
         return self.__timer
 
 
@@ -295,8 +302,6 @@ class AbstractBenchmarkRunner:
         :rtype: :class:`list` of :class:`str`
         """
 
-        if not hasattr(self, '__log'):
-            self.__log = list()
         return self.__log
 
 
