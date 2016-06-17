@@ -62,8 +62,7 @@ def filenames(draw):
     return name
 
 
-@given(filenames(), st.integers(max_value=5))
-@settings(timeout=120)
+@given(filenames(), st.integers(max_value=2))
 def test_runners(prefix, times):
 
     assume(times > 0)
@@ -74,16 +73,15 @@ def test_runners(prefix, times):
     b.bench(times=times)
     for n in b._timer.names:
         print n, times, b._timer.average(n)
-    print
 
     assert b._timer._order == ['fetch', 'prepare', 'launch',
                         'deploy', 'run', 'cleanup'],  b._timer._order
 
-    assert set(b._timer.keys()) == set(b._order), \
+    assert set(b._timer._times.keys()) == set(b._timer._order), \
         (b._timer.keys(), b._timer._order)
-    print 'ok'
 
 
+    print
 
 
 if __name__ == '__main__':
