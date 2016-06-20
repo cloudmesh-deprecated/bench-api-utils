@@ -75,6 +75,12 @@ class AbstractBenchmarkRunner:
 
     def __init__(self, prefix=None, node_count=1,
                  files_to_source=None, provider_name=None):
+        """
+        :param prefix: directory (created if missing) to fetch projects into
+        :param node_count: number of nodes to launch
+        :param files_to_source: paths to files to source for environment
+        :param provider_name: name of the cloud provider
+        """
         self._prefix = prefix or os.getcwd()
         self._env = dict()
         self.__log = list()
