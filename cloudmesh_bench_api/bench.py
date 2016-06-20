@@ -74,6 +74,7 @@ class AbstractBenchmarkRunner:
 
     def __init__(self, prefix=None, node_count=1):
         self._prefix = prefix or os.getcwd()
+        self._env = dict()
         self.__log = list()
         self.__timer = Timer()
         self._report = Report(self.__timer)
