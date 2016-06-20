@@ -34,6 +34,7 @@ class AbstractBenchmarkRunner:
 
     #. fetching the benchmark
     #. preparing the environment to run the benchmark
+    #. configuring the virtual cluster
     #. launching a virtual cluster
     #. deploying onto the virtual cluster
     #. running the benchmark
@@ -143,6 +144,31 @@ class AbstractBenchmarkRunner:
         with self._timer.measure('prepare'):
             self._env = self._prepare()
 
+
+    ################################################## configure
+
+    @abstractmethod
+    def _configure(self, node_count=1):
+        """Configure the virtual cluster before deployment
+
+        :param node_count: number of nodes to deploy
+        :raises: :class:`BenchmarkError` on a bad configuration
+        """
+
+        raise NotImplementedError
+
+
+    def configure(self):
+        """Configure the virtual cluster before deploying
+
+        :raises: :class:`BenchmarkError` on bad configuration
+        """
+
+        self._log.append('configure')
+
+        with pxul.os.env(**self._env),  self._timer.measure('configure'):
+            self._configure(node_count=self.node_count)
+                
 
     ################################################## launch
 
@@ -275,6 +301,7 @@ class AbstractBenchmarkRunner:
         for i in xrange(times):
             self.fetch(prefix=self._prefix)
             self.prepare()
+            self.configure()
             self.launch()
             self.deploy()
             self.run()
