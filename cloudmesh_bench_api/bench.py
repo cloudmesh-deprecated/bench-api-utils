@@ -4,6 +4,7 @@ from .timer import Timer
 from .report import Report
 
 import pxul.os
+from pxul.subprocess import run
 
 from abc import ABCMeta, abstractmethod
 import copy
@@ -72,13 +73,14 @@ class AbstractBenchmarkRunner:
     __metaclass__ = ABCMeta
 
 
-    def __init__(self, prefix=None, node_count=1):
+    def __init__(self, prefix=None, node_count=1, files_to_source=None):
         self._prefix = prefix or os.getcwd()
         self._env = dict()
         self.__log = list()
         self.__timer = Timer()
         self._report = Report(self.__timer)
         self._node_count = node_count
+        self._files_to_source = files_to_source or list()
 
     ################################################## fetch
 
@@ -142,8 +144,11 @@ class AbstractBenchmarkRunner:
 
         self._log.append('prepare')
 
+        cmds = ['source %s' % p for p in self.files_to_source]
         with self._timer.measure('prepare'):
-            self._env = self._prepare()
+            self._env = self.eval_bash(cmds)
+            newenv    = self._prepare()
+            self._env.update(newenv)
 
 
     ################################################## configure
@@ -374,3 +379,41 @@ class AbstractBenchmarkRunner:
         """
 
         return self._node_count
+
+
+    @property
+    def files_to_source(self):
+        """The list of files to source when setting of the environment
+
+        Modification of this list has no effect.
+
+        :rtype: :class:`list` of :class:`str`
+        """
+
+        return copy.deepcopy(self._files_to_source)
+
+
+    def eval_bash(self, commands):
+        """Return a new environment obtained by evaluating these commands
+
+        :param commands: commands to evaluate in bash
+        :type paths: :class:`list` of :class:`str`
+        :returns: the new environment
+        :rtype: :class:`dict` of :class:`str` to :class:`str`
+        """
+
+        cmds = ['%s >/dev/null 2>&1' % c for c in commands]
+        cmds += ['env']
+        script = '\n'.join(cmds)
+
+        new_env = dict()
+        result = run(['bash', '-c', script], capture='stdout')
+
+        for l in result.out.split('\n'):
+            line = l.strip()
+            if not line: continue
+            if '=' not in line: continue
+            k, v = line.split('=', 1)
+            new_env[k] = v
+
+        return new_env
