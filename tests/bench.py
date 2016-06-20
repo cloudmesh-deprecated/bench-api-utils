@@ -12,14 +12,12 @@ import time
 import string
 import random
 
-MAX_SECONDS = 1
+MAX_SECONDS = 0.1
 
 
 
 def sleep():
-    f = random.random()
-    i = random.randint(0, MAX_SECONDS)
-    wait = i + f
+    wait = random.uniform(0, MAX_SECONDS)
     time.sleep(wait)
 
 
