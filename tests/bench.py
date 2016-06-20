@@ -1,6 +1,7 @@
 
 
 from cloudmesh_bench_api.bench import AbstractBenchmarkRunner
+from cloudmesh_bench_api.bench import BenchmarkError
 from cloudmesh_bench_api.report import Report
 
 from hypothesis import given, settings, assume
@@ -22,6 +23,16 @@ def sleep():
     time.sleep(wait)
 
 
+def assertRaises(exc, fn):
+    try:
+        fn()
+    except exc:
+        return True
+    else:
+        raise ValueError('%s did not raise %s' % (fn.func_name,
+                                                  exc.__name__))
+
+
 
 class ExampleBenchmarkRunner(AbstractBenchmarkRunner):
 
@@ -35,6 +46,11 @@ class ExampleBenchmarkRunner(AbstractBenchmarkRunner):
     def _prepare(self):
         sleep()
         return dict()
+
+    def _configure(self, node_count=1):
+        if node_count < 1:
+            raise BenchmarkError('Node count less than 1: {}'\
+                                 .format(node_count))
 
     def _launch(self):
         sleep()
@@ -63,18 +79,21 @@ def filenames(draw):
     return name
 
 
-@given(filenames(), st.integers(min_value=1, max_value=5))
-def test_runners(prefix, times):
+@given(filenames(),
+       st.integers(min_value=1, max_value=5),
+       st.integers(min_value=1))
+def test_runners(prefix, times, node_count):
 
     prefix = os.path.join('testprefix', prefix)
-    print 'X', times, 'in', prefix
-    b = ExampleBenchmarkRunner(prefix=prefix)
+    print 'X', times, 'in', prefix, 'with', node_count, 'nodes'
+    b = ExampleBenchmarkRunner(prefix=prefix, node_count=node_count)
     b.bench(times=times)
 
     print b.report.pretty()
 
-    assert list(b._timer.names) == ['fetch', 'prepare', 'launch',
-                                    'deploy', 'run', 'cleanup'],  \
+    assert list(b._timer.names) == ['fetch', 'prepare', 'configure',
+                                    'launch', 'deploy', 'run',
+                                    'cleanup'],  \
                                     list(b._timer.names)
 
     assert set(b._timer._times.keys()) == set(b._timer.names), \
