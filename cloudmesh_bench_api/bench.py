@@ -73,7 +73,8 @@ class AbstractBenchmarkRunner:
     __metaclass__ = ABCMeta
 
 
-    def __init__(self, prefix=None, node_count=1, files_to_source=None):
+    def __init__(self, prefix=None, node_count=1,
+                 files_to_source=None, provider_name=None):
         self._prefix = prefix or os.getcwd()
         self._env = dict()
         self.__log = list()
@@ -81,6 +82,7 @@ class AbstractBenchmarkRunner:
         self._report = Report(self.__timer)
         self._node_count = node_count
         self._files_to_source = files_to_source or list()
+        self._provider_name = provider_name or ''
 
     ################################################## fetch
 
@@ -417,3 +419,13 @@ class AbstractBenchmarkRunner:
             new_env[k] = v
 
         return new_env
+
+
+    @property
+    def provider_name(self):
+        """The name of the cloud provider.
+
+        :rtype: :class:`str`
+        """
+
+        return self._provider_name
