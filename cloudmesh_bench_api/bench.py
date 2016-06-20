@@ -71,11 +71,12 @@ class AbstractBenchmarkRunner:
     __metaclass__ = ABCMeta
 
 
-    def __init__(self, prefix=None):
+    def __init__(self, prefix=None, node_count=1):
         self._prefix = prefix or os.getcwd()
         self.__log = list()
         self.__timer = Timer()
         self._report = Report(self.__timer)
+        self._node_count = node_count
 
     ################################################## fetch
 
@@ -334,3 +335,14 @@ class AbstractBenchmarkRunner:
         """
 
         return self._report
+
+
+    @property
+    def node_count(self):
+        """Number of nodes to allocate for this benchmark
+
+        :returns: number of nodes
+        :rtype: :class:`int`
+        """
+
+        return self._node_count
