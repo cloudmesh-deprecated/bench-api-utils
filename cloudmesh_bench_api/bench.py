@@ -11,6 +11,9 @@ import copy
 import os
 import shutil
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 ################################################## exceptions
 
@@ -291,10 +294,13 @@ class AbstractBenchmarkRunner:
         self._log.append('clean')
 
         with pxul.os.env(**self._env), self._timer.measure('cleanup'):
-            self._clean()
-
-        shutil.rmtree(self.path)
-        self._path = None
+            try:
+                self._clean()
+            except BenchmarkError as e:
+                logger.error('Cleaning failed with %s', e)
+            finally:
+                shutil.rmtree(self.path)
+                self._path = None
 
     ################################################## bench
 
@@ -316,11 +322,16 @@ class AbstractBenchmarkRunner:
             self.fetch(prefix=self._prefix)
             self.prepare()
             self.configure()
-            self.launch()
-            self.deploy()
-            self.run()
-            self.clean()
-            
+
+            try:
+                self.launch()
+                self.deploy()
+                self.run()
+            except BenchmarkError as e:
+                logger.error(str(e))
+            finally:
+                self.clean()
+
 
 
     ##################################################
