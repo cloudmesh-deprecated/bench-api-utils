@@ -76,11 +76,12 @@ class AbstractBenchmarkRunner:
     __metaclass__ = ABCMeta
 
 
-    def __init__(self, prefix=None, node_count=1,
+    def __init__(self, prefix=None, node_count=1, data_params=None,
                  files_to_source=None, provider_name=None):
         """
         :param prefix: directory (created if missing) to fetch projects into
         :param node_count: number of nodes to launch
+        :param data_params: size (in bytes) of the dataset to generate (if None -- the default -- do not do anything for dataset size)
         :param files_to_source: paths to files to source for environment
         :param provider_name: name of the cloud provider
         """
@@ -90,6 +91,7 @@ class AbstractBenchmarkRunner:
         self.__timer = Timer()
         self._report = Report(self.__timer)
         self._node_count = node_count
+        self._data_params = data_params
         self._files_to_source = files_to_source or list()
         self._provider_name = provider_name or ''
 
@@ -149,6 +151,33 @@ class AbstractBenchmarkRunner:
         raise NotImplementedError
 
 
+    @abstractmethod
+    def _generate_data(self, params):
+        """If a dataset is to be generated this function will be called.
+
+        There are two options:
+        1) generate the data directly
+        2) defer the generation until deployment
+
+        An example of the first would be to call numpy:
+        >>> data = np.random.random((1000,10))
+        >>> # write data to file
+
+        An example of the second would be to generate a script that
+        will be run as part of the deployment step.
+
+        The return value of this function indicates which step was
+        taken.
+
+        :param params: arbitrary parameters controlling the generation of the dataset
+        :type params: :class:`dict` of :class:`str` to anything.
+        :returns: True if the dataset is written directly, False if deferred
+        :rtype: :class:`bool`
+
+        """
+         raise NotImplementedError
+
+
     def prepare(self):
         """Prepare the benchmark to be run
         """
@@ -160,6 +189,13 @@ class AbstractBenchmarkRunner:
             self._env = self.eval_bash(cmds)
             newenv    = self._prepare()
             self._env.update(newenv)
+
+        if self.generate_dataset:
+            self._log.append('dataset')
+            with self._timer.measure('dataset'):
+                direct = self._generate_data(self.data_params)
+                method = 'directly' if direct else 'deferred'
+                logger.info('Data generated %s', method)
 
 
     ################################################## configure
@@ -446,3 +482,29 @@ class AbstractBenchmarkRunner:
         """
 
         return self._provider_name
+
+
+    @property
+    def generate_dataset(self):
+        """Indicate if a data set needs to be generated
+
+        :rtype: :class:`bool`
+        """
+
+        return self._data_params is not None
+
+
+    @property
+    def data_params(self):
+        """Return the size (in bytes) of the dataset to generate.
+
+        Note: this is a deepcopy of the underlying value, so
+        modifications of the value will have not effect.
+
+        :rtype: :class:`dict` of :class:`str` to anything
+
+        """
+
+        assert self.generate_dataset, 'Undefined data generation parameters'
+
+        return copy.deepcopy(self._data_params)
