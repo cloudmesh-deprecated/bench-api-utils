@@ -175,7 +175,7 @@ class AbstractBenchmarkRunner:
         :rtype: :class:`bool`
 
         """
-         raise NotImplementedError
+        raise NotImplementedError
 
 
     def prepare(self):
